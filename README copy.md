@@ -76,7 +76,7 @@ For CI/CD pipelines, you should use GitHub secrets to store your Firebase config
    - `FIREBASE_MEASUREMENT_ID`
    - `FIREBASE_SERVICE_ACCOUNT` (Generate this in Firebase Project Settings > Service accounts > Generate new private key)
 
-The GitHub workflow file (`.github/workflows/firebase-deploy.yml`) is already set up to use these secrets for deployment.
+The GitHub workflow file (`.github/workflows/firebase-deploy.yml`) is already set up to use these secrets for deployment..
 
 ### Enable Authentication
 
