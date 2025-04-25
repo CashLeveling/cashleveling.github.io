@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Base rule - deny access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // User-specific entries
+    match /entries/{entryId} {
+      // Allow users to read and write only their own entries
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Allow users to create entries with their own userId
+      allow create: if request.auth != null && 
+                     request.auth.uid == request.resource.data.userId &&
+                     request.resource.data.keys().hasAll(['type', 'amount', 'date', 'userId']);
+      
+      // Allow users to update their own entries without changing the userId
+      allow update: if request.auth != null && 
+                     request.auth.uid == resource.data.userId &&
+                     request.auth.uid == request.resource.data.userId;
+      
+      // Allow users to delete their own entries
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // User-specific goals
+    match /goals/{goalId} {
+      // Allow users to read and write only their own goals
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Allow users to create goals with their own userId
+      allow create: if request.auth != null && 
+                     request.auth.uid == request.resource.data.userId &&
+                     request.resource.data.keys().hasAll(['name', 'targetAmount', 'currentAmount', 'userId']);
+      
+      // Allow users to update their own goals without changing the userId
+      allow update: if request.auth != null && 
+                     request.auth.uid == resource.data.userId &&
+                     request.auth.uid == request.resource.data.userId;
+      
+      // Allow users to delete their own goals
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // User profiles (if you add them in the future)
+    match /users/{userId} {
+      // Allow users to read and write only their own profile
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
