@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     extensions: ['.js', '.jsx']
   },
-  base: '/', // For user/organization site (username.github.io)
+  base: './', // For GitHub Pages deployment
   build: {
     outDir: 'dist',
     sourcemap: true
