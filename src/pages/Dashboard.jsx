@@ -6,14 +6,17 @@ import {
 import { useBudget } from '../contexts/BudgetContext';
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';
+import CategoryBreakdown from '../components/CategoryBreakdown';
 import { formatCurrency, getChartColor } from '../utils/helpers';
 
 const Dashboard = () => {
-  const { getSummary, getEntriesByCategory, getMonthlyData, refreshData } = useBudget();
+  const { entries, getSummary, getEntriesByCategory, getMonthlyData, refreshData } = useBudget();
   const [summary, setSummary] = useState({ income: 0, expenses: 0, savings: 0, balance: 0 });
   const [categoryData, setCategoryData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
+  const [breakdownType, setBreakdownType] = useState(null);
 
   useEffect(() => {
     // Get summary data
@@ -133,22 +136,38 @@ const Dashboard = () => {
         <StatCard 
           title="Total Income" 
           value={summary.income} 
-          icon={incomeIcon} 
+          icon={incomeIcon}
+          onClick={() => {
+            setBreakdownType('income');
+            setBreakdownOpen(true);
+          }}
         />
         <StatCard 
           title="Total Expenses" 
           value={summary.expenses} 
-          icon={expenseIcon} 
+          icon={expenseIcon}
+          onClick={() => {
+            setBreakdownType('expense');
+            setBreakdownOpen(true);
+          }}
         />
         <StatCard 
           title="Net Balance" 
           value={summary.balance} 
-          icon={balanceIcon} 
+          icon={balanceIcon}
+          onClick={() => {
+            setBreakdownType('balance');
+            setBreakdownOpen(true);
+          }}
         />
         <StatCard 
           title="Total Savings" 
           value={summary.savings} 
-          icon={savingsIcon} 
+          icon={savingsIcon}
+          onClick={() => {
+            setBreakdownType('saving');
+            setBreakdownOpen(true);
+          }}
         />
       </div>
       
@@ -233,6 +252,23 @@ const Dashboard = () => {
           </div>
         )}
       </Card>
+      {/* Category Breakdown Modal */}
+      {breakdownOpen && (
+        <CategoryBreakdown
+          title={
+            breakdownType === 'income' ? 'Income' :
+            breakdownType === 'expense' ? 'Expenses' :
+            breakdownType === 'saving' ? 'Savings' :
+            breakdownType === 'balance' ? 'Balance' : ''
+          }
+          entries={
+            breakdownType === 'balance' 
+              ? entries.filter(entry => entry.type === 'income' || entry.type === 'expense')
+              : entries.filter(entry => entry.type === breakdownType)
+          }
+          onClose={() => setBreakdownOpen(false)}
+        />
+      )}
     </div>
   );
 };

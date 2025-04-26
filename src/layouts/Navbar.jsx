@@ -23,7 +23,7 @@ const Navbar = ({ toggleDarkMode, isDarkMode }) => {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link to="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                BudgetTracker
+                Cash Leveling
               </Link>
             </div>
             <div className="hidden md:block">
@@ -35,7 +35,7 @@ const Navbar = ({ toggleDarkMode, isDarkMode }) => {
                   Add Entry
                 </Link>
                 <Link to="/budget-overview" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-                  Budget Overview
+                  Financial Overview
                 </Link>
                 <Link to="/goal-tracker" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                   Goal Tracker
@@ -113,7 +113,7 @@ const Navbar = ({ toggleDarkMode, isDarkMode }) => {
             Add Entry
           </Link>
           <Link to="/budget-overview" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-            Budget Overview
+            Financial Overview
           </Link>
           <Link to="/goal-tracker" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
             Goal Tracker

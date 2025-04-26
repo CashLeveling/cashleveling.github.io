@@ -122,7 +122,7 @@ const BudgetOverview = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Budget Overview</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Financial Overview</h1>
       
       {/* Filters */}
       <Card title="Filters">
