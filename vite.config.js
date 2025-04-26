@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     extensions: ['.js', '.jsx']
   },
-  base: '/cashleveling.github.io/', // Set base to your repository name
+  base: '/', // For user/organization site (username.github.io)
   build: {
     outDir: 'dist',
     sourcemap: true
