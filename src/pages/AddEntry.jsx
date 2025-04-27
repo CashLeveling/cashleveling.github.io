@@ -3,13 +3,14 @@ import { useBudget } from '../contexts/BudgetContext';
 import Card from '../components/Card';
 
 const AddEntry = () => {
-  const { addEntry } = useBudget();
+  const { addEntry, accounts } = useBudget();
   const [formData, setFormData] = useState({
     type: 'expense',
     amount: '',
     category: '',
     date: new Date().toISOString().split('T')[0],
     notes: '',
+    accountId: '',
   });
   const [message, setMessage] = useState({ text: '', type: '' });
 
@@ -66,6 +67,7 @@ const AddEntry = () => {
       category: '',
       date: new Date().toISOString().split('T')[0],
       notes: '',
+      accountId: '',
     });
     
     // Show success message
@@ -201,6 +203,27 @@ const AddEntry = () => {
               className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
               required
             />
+          </div>
+          
+          {/* Account */}
+          <div className="mb-6">
+            <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Account
+            </label>
+            <select
+              id="accountId"
+              name="accountId"
+              value={formData.accountId}
+              onChange={handleChange}
+              className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+            >
+              <option value="">No specific account</option>
+              {accounts && accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name} ({account.type.charAt(0).toUpperCase() + account.type.slice(1)})
+                </option>
+              ))}
+            </select>
           </div>
           
           {/* Notes */}

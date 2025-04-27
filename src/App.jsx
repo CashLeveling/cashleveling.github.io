@@ -6,6 +6,7 @@ import AddEntry from './pages/AddEntry';
 import BudgetOverview from './pages/BudgetOverview';
 import GoalTracker from './pages/GoalTracker';
 import SavingsCalculator from './pages/SavingsCalculator';
+import AccountsPage from './pages/AccountsPage';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
 import ForgotPassword from './components/auth/ForgotPassword';
@@ -59,6 +60,7 @@ function App() {
               <Route path="budget-overview" element={<BudgetOverview />} />
               <Route path="goal-tracker" element={<GoalTracker />} />
               <Route path="savings-calculator" element={<SavingsCalculator />} />
+              <Route path="accounts" element={<AccountsPage />} />
               <Route path="profile" element={<Profile />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

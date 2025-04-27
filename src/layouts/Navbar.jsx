@@ -43,6 +43,9 @@ const Navbar = ({ toggleDarkMode, isDarkMode }) => {
                 <Link to="/savings-calculator" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                   Savings Calculator
                 </Link>
+                <Link to="/accounts" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                  Accounts
+                </Link>
               </div>
             </div>
           </div>
@@ -120,6 +123,9 @@ const Navbar = ({ toggleDarkMode, isDarkMode }) => {
           </Link>
           <Link to="/savings-calculator" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
             Savings Calculator
+          </Link>
+          <Link to="/accounts" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+            Accounts
           </Link>
           
           {currentUser ? (

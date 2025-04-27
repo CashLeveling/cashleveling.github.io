@@ -26,6 +26,7 @@ export const useBudget = () => {
 export const BudgetProvider = ({ children }) => {
   const [entries, setEntries] = useState([]);
   const [goals, setGoals] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
 
@@ -38,9 +39,11 @@ export const BudgetProvider = ({ children }) => {
       // If no user is logged in, use localStorage data
       const savedEntries = localStorage.getItem('budgetEntries');
       const savedGoals = localStorage.getItem('savingsGoals');
+      const savedAccounts = localStorage.getItem('accounts');
       
       setEntries(savedEntries ? JSON.parse(savedEntries) : []);
       setGoals(savedGoals ? JSON.parse(savedGoals) : []);
+      setAccounts(savedAccounts ? JSON.parse(savedAccounts) : []);
       setLoading(false);
       return;
     }
@@ -93,8 +96,23 @@ export const BudgetProvider = ({ children }) => {
         ...doc.data()
       }));
       
+      // Fetch accounts
+      const accountsQuery = query(
+        collection(db, 'accounts'),
+        where('userId', '==', currentUser.uid)
+      );
+      
+      const accountsSnapshot = await getDocs(accountsQuery);
+      console.log("Accounts fetched:", accountsSnapshot.docs.length);
+      
+      const accountsList = accountsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
       setEntries(entriesList);
       setGoals(goalsList);
+      setAccounts(accountsList);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -310,6 +328,88 @@ export const BudgetProvider = ({ children }) => {
     }
   };
 
+  // Add a new account
+  const addAccount = async (account) => {
+    if (!currentUser) {
+      // Fallback to localStorage if no user is logged in
+      const newAccount = {
+        ...account,
+        id: Date.now().toString(),
+        currentBalance: account.startingBalance,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedAccounts = [...accounts, newAccount];
+      setAccounts(updatedAccounts);
+      localStorage.setItem('accounts', JSON.stringify(updatedAccounts));
+      return;
+    }
+
+    try {
+      const accountData = {
+        ...account,
+        userId: currentUser.uid,
+        currentBalance: account.startingBalance,
+        createdAt: serverTimestamp(),
+      };
+      
+      const docRef = await addDoc(collection(db, 'accounts'), accountData);
+      
+      const newAccount = {
+        ...accountData,
+        id: docRef.id,
+      };
+      
+      setAccounts([...accounts, newAccount]);
+    } catch (error) {
+      console.error("Error adding account:", error);
+      throw error;
+    }
+  };
+
+  // Update an account
+  const updateAccount = async (id, updatedAccount) => {
+    if (!currentUser) {
+      // Fallback to localStorage if no user is logged in
+      const updatedAccounts = accounts.map(account => 
+        account.id === id ? { ...account, ...updatedAccount } : account
+      );
+      setAccounts(updatedAccounts);
+      localStorage.setItem('accounts', JSON.stringify(updatedAccounts));
+      return;
+    }
+
+    try {
+      const accountRef = doc(db, 'accounts', id);
+      await updateDoc(accountRef, updatedAccount);
+      
+      setAccounts(accounts.map(account => 
+        account.id === id ? { ...account, ...updatedAccount } : account
+      ));
+    } catch (error) {
+      console.error("Error updating account:", error);
+      throw error;
+    }
+  };
+
+  // Delete an account
+  const deleteAccount = async (id) => {
+    if (!currentUser) {
+      // Fallback to localStorage if no user is logged in
+      const updatedAccounts = accounts.filter(account => account.id !== id);
+      setAccounts(updatedAccounts);
+      localStorage.setItem('accounts', JSON.stringify(updatedAccounts));
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'accounts', id));
+      setAccounts(accounts.filter(account => account.id !== id));
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      throw error;
+    }
+  };
+
   // Calculate summary data
   const getSummary = () => {
     const income = entries
@@ -324,11 +424,16 @@ export const BudgetProvider = ({ children }) => {
       .filter(entry => entry.type === 'saving')
       .reduce((sum, entry) => sum + Number(entry.amount), 0);
     
+    // Calculate total starting balance from all accounts
+    const startingBalance = accounts
+      .reduce((sum, account) => sum + Number(account.startingBalance || 0), 0);
+    
     return {
       income,
       expenses,
       savings,
-      balance: income - expenses,
+      startingBalance,
+      balance: startingBalance + income - expenses,
     };
   };
 
@@ -387,6 +492,7 @@ export const BudgetProvider = ({ children }) => {
   const value = {
     entries,
     goals,
+    accounts,
     loading,
     addEntry,
     deleteEntry,
@@ -394,6 +500,9 @@ export const BudgetProvider = ({ children }) => {
     addGoal,
     updateGoal,
     deleteGoal,
+    addAccount,
+    updateAccount,
+    deleteAccount,
     getSummary,
     getEntriesByCategory,
     getMonthlyData,

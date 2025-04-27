@@ -44,6 +44,25 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     
+    // User-specific accounts
+    match /accounts/{accountId} {
+      // Allow users to read and write only their own accounts
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Allow users to create accounts with their own userId
+      allow create: if request.auth != null && 
+                     request.auth.uid == request.resource.data.userId &&
+                     request.resource.data.keys().hasAll(['name', 'type', 'startingBalance', 'userId']);
+      
+      // Allow users to update their own accounts without changing the userId
+      allow update: if request.auth != null && 
+                     request.auth.uid == resource.data.userId &&
+                     request.auth.uid == request.resource.data.userId;
+      
+      // Allow users to delete their own accounts
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
     // User profiles (if you add them in the future)
     match /users/{userId} {
       // Allow users to read and write only their own profile
