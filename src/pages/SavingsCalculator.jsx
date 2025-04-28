@@ -116,7 +116,7 @@ const SavingsCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">High-Yield Savings Calculator</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Savings Interest Calculator</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calculator Form */}
@@ -365,11 +365,12 @@ const SavingsCalculator = () => {
       </div>
       
       {/* Information Section */}
-      <Card title="About High-Yield Savings">
+      <Card title="About Savings Interest">
         <div className="prose dark:prose-invert max-w-none">
           <p>
-            High-yield savings accounts typically offer higher interest rates than traditional savings accounts, 
-            allowing your money to grow faster over time. These accounts are FDIC-insured up to $250,000 per 
+            This calculator helps you project growth for both regular savings accounts and high-yield savings accounts.
+            High-yield accounts typically offer higher interest rates than traditional savings accounts, 
+            allowing your money to grow faster over time. Most savings accounts are FDIC-insured up to $250,000 per 
             depositor, per bank.
           </p>
           
@@ -383,6 +384,13 @@ const SavingsCalculator = () => {
           <p>
             If you include monthly contributions, the formula becomes more complex, accounting for the 
             regular deposits and their compound growth over time.
+          </p>
+          
+          <h3>Regular vs. High-Yield Savings</h3>
+          <p>
+            Regular savings accounts typically offer lower interest rates (often 0.01% to 0.1% APY), while 
+            high-yield savings accounts can offer significantly higher rates (often 3% to 5% APY or more). 
+            Use the compare feature to see how different interest rates affect your savings over time.
           </p>
           
           <h3>Tips for Maximizing Your Savings</h3>
