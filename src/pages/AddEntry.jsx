@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBudget } from '../contexts/BudgetContext';
 import Card from '../components/Card';
 
@@ -11,6 +11,9 @@ const AddEntry = () => {
     date: new Date().toISOString().split('T')[0],
     notes: '',
     accountId: '',
+    isRecurring: false,
+    frequency: 'monthly',
+    nextPayDate: new Date().toISOString().split('T')[0],
   });
   const [message, setMessage] = useState({ text: '', type: '' });
 
@@ -22,7 +25,16 @@ const AddEntry = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    
+    // Handle checkbox inputs
+    if (type === 'checkbox') {
+      setFormData({
+        ...formData,
+        [name]: checked,
+      });
+      return;
+    }
     
     // If changing type, reset category
     if (name === 'type') {
@@ -39,6 +51,46 @@ const AddEntry = () => {
     }
   };
 
+  // Calculate next pay date based on frequency when frequency changes
+  useEffect(() => {
+    if (formData.isRecurring && formData.type === 'income') {
+      updateNextPayDate();
+    }
+  }, [formData.frequency, formData.date]);
+
+  // Function to calculate the next pay date based on frequency
+  const updateNextPayDate = () => {
+    const currentDate = new Date(formData.date);
+    let nextDate = new Date(currentDate);
+    
+    switch (formData.frequency) {
+      case 'biweekly':
+        // Bi-weekly: Add 14 days
+        nextDate.setDate(currentDate.getDate() + 14);
+        break;
+      case 'semimonthly':
+        // Semi-monthly: If date is before 15th, set to 15th, otherwise set to 1st of next month
+        if (currentDate.getDate() < 15) {
+          nextDate.setDate(15);
+        } else {
+          nextDate.setMonth(currentDate.getMonth() + 1, 1);
+        }
+        break;
+      case 'monthly':
+        // Monthly: Add 1 month
+        nextDate.setMonth(currentDate.getMonth() + 1);
+        break;
+      default:
+        // Default to monthly
+        nextDate.setMonth(currentDate.getMonth() + 1);
+    }
+    
+    setFormData({
+      ...formData,
+      nextPayDate: nextDate.toISOString().split('T')[0],
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -46,6 +98,15 @@ const AddEntry = () => {
     if (!formData.amount || !formData.category || !formData.date) {
       setMessage({
         text: 'Please fill in all required fields',
+        type: 'error',
+      });
+      return;
+    }
+    
+    // Additional validation for recurring income
+    if (formData.isRecurring && formData.type === 'income' && !formData.nextPayDate) {
+      setMessage({
+        text: 'Please provide the next pay date for recurring income',
         type: 'error',
       });
       return;
@@ -68,6 +129,9 @@ const AddEntry = () => {
       date: new Date().toISOString().split('T')[0],
       notes: '',
       accountId: '',
+      isRecurring: false,
+      frequency: 'monthly',
+      nextPayDate: new Date().toISOString().split('T')[0],
     });
     
     // Show success message
@@ -225,6 +289,67 @@ const AddEntry = () => {
               ))}
             </select>
           </div>
+          
+          {/* Recurring Income Options (only shown for income type) */}
+          {formData.type === 'income' && (
+            <div className="mb-6 border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+              <div className="flex items-center mb-4">
+                <input
+                  id="isRecurring"
+                  name="isRecurring"
+                  type="checkbox"
+                  checked={formData.isRecurring}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-blue-600 dark:text-blue-500 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400"
+                />
+                <label htmlFor="isRecurring" className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  This is recurring income
+                </label>
+              </div>
+              
+              {formData.isRecurring && (
+                <>
+                  {/* Frequency Selection */}
+                  <div className="mb-4">
+                    <label htmlFor="frequency" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Payment Frequency
+                    </label>
+                    <select
+                      id="frequency"
+                      name="frequency"
+                      value={formData.frequency}
+                      onChange={handleChange}
+                      className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="semimonthly">Semi-monthly (Twice a month)</option>
+                      <option value="biweekly">Bi-weekly (Every two weeks)</option>
+                    </select>
+                  </div>
+                  
+                  {/* Next Pay Date */}
+                  <div className="mb-4">
+                    <label htmlFor="nextPayDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Next Pay Date
+                    </label>
+                    <input
+                      type="date"
+                      id="nextPayDate"
+                      name="nextPayDate"
+                      value={formData.nextPayDate}
+                      onChange={handleChange}
+                      className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                    />
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      {formData.frequency === 'biweekly' && 'Payments occur every 14 days'}
+                      {formData.frequency === 'semimonthly' && 'Payments typically occur on the 1st and 15th of each month'}
+                      {formData.frequency === 'monthly' && 'Payments occur on the same date each month'}
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
           
           {/* Notes */}
           <div className="mb-6">
