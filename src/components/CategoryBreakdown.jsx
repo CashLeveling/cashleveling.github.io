@@ -91,7 +91,7 @@ const CategoryBreakdown = ({ title, entries, onClose }) => {
                     {entries.map(entry => (
                       <div key={entry.id} className="p-4 flex justify-between items-center">
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{entry.description || 'No description'}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{entry.notes || `${entry.category} transaction`}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
                             {formatDate(entry.date)}
                             {title === 'Balance' && (
