@@ -19,7 +19,11 @@ export const formatCurrency = (value, currency = 'USD') => {
  * @returns {string} Formatted date string
  */
 export const formatDate = (dateString, options = {}) => {
-  const date = new Date(dateString);
+  // Parse the date parts from the YYYY-MM-DD string to preserve local date
+  const [year, month, day] = dateString.split('-').map(Number);
+  // Create a date using local timezone (months are 0-indexed in JS Date)
+  const date = new Date(year, month - 1, day);
+  
   const defaultOptions = { 
     year: 'numeric', 
     month: 'short', 

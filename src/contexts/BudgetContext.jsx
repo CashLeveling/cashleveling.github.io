@@ -76,10 +76,16 @@ export const BudgetProvider = ({ children }) => {
       const entriesList = entriesSnapshot.docs.map(doc => {
         const data = doc.data();
         console.log("Entry data:", { id: doc.id, ...data });
+        
+        // Get the date from Firestore and convert to local date string
+        const firestoreDate = data.date.toDate();
+        // Format as YYYY-MM-DD using local date
+        const localDate = `${firestoreDate.getFullYear()}-${String(firestoreDate.getMonth() + 1).padStart(2, '0')}-${String(firestoreDate.getDate()).padStart(2, '0')}`;
+        
         return {
           id: doc.id,
           ...data,
-          date: data.date.toDate().toISOString().split('T')[0]
+          date: localDate
         };
       });
       
@@ -186,12 +192,17 @@ export const BudgetProvider = ({ children }) => {
     // Process each due income
     for (const income of dueIncomes) {
       try {
+        // Parse the date parts from the YYYY-MM-DD string to preserve local date
+        const [year, month, day] = income.nextPayDate.split('-').map(Number);
+        // Create a date using local timezone (months are 0-indexed in JS Date)
+        const nextPayDate = new Date(year, month - 1, day);
+        
         // Create a new entry for this income
         const newEntryData = {
           type: 'income',
           amount: income.amount,
           category: income.category,
-          date: new Date(income.nextPayDate),
+          date: nextPayDate,
           notes: `Auto-generated from recurring income: ${income.notes || ''}`,
           accountId: income.accountId || '',
           userId: currentUser.uid,
@@ -202,10 +213,13 @@ export const BudgetProvider = ({ children }) => {
         // Add the new entry
         const docRef = await addDoc(collection(db, 'entries'), newEntryData);
         
+        // Format the date as YYYY-MM-DD for the UI
+        const localDate = `${nextPayDate.getFullYear()}-${String(nextPayDate.getMonth() + 1).padStart(2, '0')}-${String(nextPayDate.getDate()).padStart(2, '0')}`;
+        
         const newEntry = {
           ...newEntryData,
           id: docRef.id,
-          date: newEntryData.date.toISOString().split('T')[0]
+          date: localDate
         };
         
         // Update entries state
@@ -220,11 +234,14 @@ export const BudgetProvider = ({ children }) => {
           nextPayDate: nextDate 
         });
         
+        // Format the next pay date as YYYY-MM-DD for the UI
+        const nextLocalDate = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(nextDate.getDate()).padStart(2, '0')}`;
+        
         // Update the recurring income in state
         setRecurringIncomes(prevIncomes => 
           prevIncomes.map(ri => 
             ri.id === income.id 
-              ? { ...ri, nextPayDate: nextDate.toISOString().split('T')[0] } 
+              ? { ...ri, nextPayDate: nextLocalDate } 
               : ri
           )
         );
@@ -268,20 +285,34 @@ export const BudgetProvider = ({ children }) => {
 
     try {
       console.log("Adding entry to Firestore with userId:", currentUser.uid);
+      // Create a date that preserves the local date regardless of timezone
+      let entryDate;
+      if (entry.date) {
+        // Parse the date parts from the YYYY-MM-DD string
+        const [year, month, day] = entry.date.split('-').map(Number);
+        // Create a date using local timezone (months are 0-indexed in JS Date)
+        entryDate = new Date(year, month - 1, day);
+      } else {
+        entryDate = new Date();
+      }
+      
       const entryData = {
         ...entry,
         userId: currentUser.uid,
-        date: new Date(entry.date || new Date()),
+        date: entryDate,
         createdAt: serverTimestamp(),
       };
       
       const docRef = await addDoc(collection(db, 'entries'), entryData);
       console.log("Entry added with ID:", docRef.id);
       
+      // Format the date as YYYY-MM-DD for the UI
+      const localDate = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
+      
       const newEntry = {
         ...entryData,
         id: docRef.id,
-        date: entryData.date.toISOString().split('T')[0]
+        date: localDate
       };
       
       // If it's a recurring income, add it to the recurring incomes list
@@ -337,10 +368,13 @@ export const BudgetProvider = ({ children }) => {
     try {
       const entryRef = doc(db, 'entries', id);
       
-      // If date is included, convert it to a Date object
+      // If date is included, convert it to a Date object that preserves the local date
       const dataToUpdate = { ...updatedEntry };
       if (dataToUpdate.date) {
-        dataToUpdate.date = new Date(dataToUpdate.date);
+        // Parse the date parts from the YYYY-MM-DD string
+        const [year, month, day] = dataToUpdate.date.split('-').map(Number);
+        // Create a date using local timezone (months are 0-indexed in JS Date)
+        dataToUpdate.date = new Date(year, month - 1, day);
       }
       
       await updateDoc(entryRef, dataToUpdate);
@@ -350,7 +384,8 @@ export const BudgetProvider = ({ children }) => {
           const updated = { ...entry, ...updatedEntry };
           // Ensure date is in the correct format for the UI
           if (updated.date instanceof Date) {
-            updated.date = updated.date.toISOString().split('T')[0];
+            // Format the date as YYYY-MM-DD using local date
+            updated.date = `${updated.date.getFullYear()}-${String(updated.date.getMonth() + 1).padStart(2, '0')}-${String(updated.date.getDate()).padStart(2, '0')}`;
           }
           return updated;
         }
@@ -412,10 +447,16 @@ export const BudgetProvider = ({ children }) => {
       
       const docRef = await addDoc(collection(db, 'goals'), goalData);
       
+      // Format the targetDate as YYYY-MM-DD for the UI if it exists
+      let formattedTargetDate = null;
+      if (goalData.targetDate) {
+        formattedTargetDate = `${goalData.targetDate.getFullYear()}-${String(goalData.targetDate.getMonth() + 1).padStart(2, '0')}-${String(goalData.targetDate.getDate()).padStart(2, '0')}`;
+      }
+      
       const newGoal = {
         ...goalData,
         id: docRef.id,
-        targetDate: goalData.targetDate ? goalData.targetDate.toISOString().split('T')[0] : null
+        targetDate: formattedTargetDate
       };
       
       setGoals([...goals, newGoal]);
@@ -453,7 +494,8 @@ export const BudgetProvider = ({ children }) => {
           const updated = { ...goal, ...updatedGoal };
           // Ensure targetDate is in the correct format for the UI
           if (updated.targetDate instanceof Date) {
-            updated.targetDate = updated.targetDate.toISOString().split('T')[0];
+            // Format the targetDate as YYYY-MM-DD using local date
+            updated.targetDate = `${updated.targetDate.getFullYear()}-${String(updated.targetDate.getMonth() + 1).padStart(2, '0')}-${String(updated.targetDate.getDate()).padStart(2, '0')}`;
           }
           return updated;
         }
